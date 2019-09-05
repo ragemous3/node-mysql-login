@@ -69,52 +69,49 @@ app.get('/auth', (req, res) => {});
 
 
 app.post('/create', (req, res) => {
-//Everything under the await statement is synchronous in its block;
-var creds = {};
-creds.secure = {}
-User.getUserPayload(req).then(async (credentials) => {
-  let hash = await User.crypt(credentials.pw);
-  creds.user = credentials.user;
-  creds.secure.hash = hash;
-  return credentials;
-}).then(async (val) => {
-  let token = await User.tokenize(val.user);
-  creds.secure.token = token;
-  return creds;
-}).then(async (val) => {
-  console.log(`Wrapping up and sending ${val}`);
-  return val;
-}).catch((e) => {
-  console.log(`error in async handling chain`)
-}).finally((final) => {
-    //Initiating table-promise.
-    console.log(`Initializing and storing hash and token`);
-    console.log("THE HASH: " + creds.secure.hash.length + " characters, " + " \n HOW MANY BYTES: \n"
-    + Buffer.byteLength(creds.secure.hash, 'utf8') + " bytes");
+  //Everything under the await statement is synchronous in its block;
+  var creds = {};
+  creds.secure = {}
+  //This is the only working solution i found to stack
+  //asynchronous function calls.
 
-    tablepromise.then((table, err) => {
-        if (creds.secure.hash !== false || creds.secure.token !== false) {
+  //nice chaining stuff!
+  User.getUserPayload(req)
+    .then(User.crypt)
+    .then(User.tokenize)
+    .catch((e) => {
+      console.log(`error in async handling chain`)
+    })
+    .then((creds) => {
+      console.log(`Inside final call: ${creds}`);
+      //Initiating table-promise.
+      console.log(`Initializing and storing hash and token`);
+      console.log("THE HASH: " + creds.hash.length + " characters, " + " \n HOW MANY BYTES: \n" +
+        Buffer.byteLength(creds.hash, 'utf8') + " bytes");
+
+      tablepromise.then((table, err) => {
+        if (creds.hash !== false || creds.token !== false) {
           table.insert(['user', 'password', 'token'])
-            .values(creds.user, Buffer.from(creds.secure.hash).toString('base64'),
-             creds.secure.token)
+            .values(creds.user, Buffer.from(creds.hash).toString('base64'),
+              creds.token)
             .execute()
             .then((resp, callb) => {
-                res.status(200)
-                res.set({
-                  'Content-Type': 'text/plain',
-                  'auth': creds.secure.token,
-                })
-                console.log(`All done! \n `);
-                res.send();
+              res.status(200)
+              res.set({
+                'Content-Type': 'text/plain',
+                'auth': creds.token,
+              })
+              console.log(`All done! \n `);
+              res.send();
             })
             .catch((e) => {
               if (e.info.code == 1062) {
                 console.error(e.info.msg);
                 res.status(400).send('Bad request, duplicate entry');
-              }else if(e.info.code == 22001){
+              } else if (e.info.code == 22001) {
                 console.error(e.info.msg);
                 res.status(500).send('WOOPS');
-              }else {
+              } else {
                 console.log(e);
                 console.error(`Error getting all that you want baby ${e}`);
                 res.status(400).end('Bad Request'); //Bad request status so far.
@@ -124,7 +121,7 @@ User.getUserPayload(req).then(async (credentials) => {
       }).catch((e) => {
         console.error(e);
       });
-  });
+    });
 });
 
 app.listen(port, () => {

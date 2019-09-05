@@ -25,8 +25,7 @@ const User = {
         });
   },
 
-  crypt(password) {    //returns a hash-promise to be inserted into DB.
-    console.log(password);
+  crypt(obj) {    //returns a hash-promise to be inserted into DB.
     //the more rounds of salt the saltier the salt
     return new Promise((resolve, reject, err) => {
       const saltRounds = 10;
@@ -34,13 +33,14 @@ const User = {
           if (err || error) {
             reject(`${err} \n ${error}`);
           }
-          bcrypt.hash(password, salt, function(error3, hash) {
+          bcrypt.hash(obj.pw, salt, function(error3, hash) {
             if (error3) {
               reject(error3)
             }else {
               console.log("\x1b[32m", "HashMaking was a success \n");
               console.log("\x1b[37m", hash);
-              resolve(hash);
+              obj.hash = hash;
+              resolve(obj);
             }
           })
           })
@@ -66,19 +66,21 @@ const User = {
     }
   },
 
-  tokenize(user) {
+  tokenize(obj) {
 
     //in this case im using username as a token but could aswell use something
     //faster as a small id-hash with many combinations.
     return new Promise((resolve,reject,error) => {
-        jwt.sign({user: user.toString(16)}, this.privkey,
+                                                //privkey should be a .pem file-content
+        jwt.sign({user: obj.user.toString(16)}, 'auth',
           function(err, token) {
               if(err){
                 reject(`${error} \n ${err}`)
               }
               console.log('User just created a token');
-              console.log(token);
-              resolve(token);
+              obj.token = token;
+              console.log(obj);
+              resolve(obj);
         })
     }).catch((e) => {
         console.log(e);
@@ -87,7 +89,7 @@ const User = {
 
   verify(token){
     //return decoded user-token ((username)) or an error;
-    return jwt.verify(token, this.privkey, function(err, decoded) {
+    return jwt.verify(token, 'auth', function(err, decoded) {
       if(err){
         throw new Error();
       }
