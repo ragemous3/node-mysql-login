@@ -68,12 +68,13 @@ app.get('/token', (req, res) => {});
 app.get('/auth', (req, res) => {});
 
 
-app.post('/create', async (req, res) => {
+app.post('/create', (req, res) => {
 //Everything under the await statement is synchronous in its block;
 var creds = {};
 creds.secure = {}
-await User.getUserPayload(req).then(async (credentials) => {
+User.getUserPayload(req).then(async (credentials) => {
   let hash = await User.crypt(credentials.pw);
+  creds.user = credentials.user;
   creds.secure.hash = hash;
   return credentials;
 }).then(async (val) => {
