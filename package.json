@@ -4,7 +4,7 @@
   "description": "create account with token",
   "main": "index.js",
   "scripts": {
-    "kick": "node ./server/index.js"
+    "blaster": "node ./server/index.js"
   },
   "author": "RM",
   "license": "MIT",
