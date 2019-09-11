@@ -89,7 +89,38 @@ module.exports = (session) => {
         throw new Error(e);
       });
 		},
-
+    authByToken(token){
+      tablepromise = getUserTable(session).catch((e) => {
+        console.log(e)
+      });
+      return new Promise((resolve, reject, err) => {
+        tablepromise.then((users, err2) => {
+          if(err2) reject();
+          users.select('token')
+            .where(`token like :param`)
+            .orderBy('user')
+            .bind(`param`, `${resp.token}%`)
+            .execute((row, eRR) => {
+              let token = row[0].trim();
+                resolve({
+                  token: token,
+                  auth: true;
+                });
+            }).then((mysql) => {
+              if((mysql.getAffectedRowsCount()) == 0){
+                // reject('No User Found');
+                throw new Error('No User Found');
+              }else{
+                return;
+              }
+            }).catch((e) => {
+              reject(e);
+            })
+        })
+      }).catch((e) => {
+        throw new Error(e);
+      });
+    },
 		save(creds) {
 			console.log('inside lvl-1');
 			tablepromise = getUserTable(session);

@@ -58,6 +58,7 @@ const session = require('./db/db.js')(app, config.instructions).catch((e) => {
 
 //DB-API//DB-API//DB-API//DB-API//DB-API//DB-API//DB-API
 const _DB_ = require('./user/userdb.js')(session);
+const authenticate = require('./middleware/authenticate.js');
 console.log(`Logging out:  ${_DB_}`);
 //DB-API//DB-API//DB-API//DB-API//DB-API//DB-API//DB-API
 
@@ -69,7 +70,19 @@ console.log(`Logging out:  ${_DB_}`);
  *******************************************************************************
  */
 
-
+app.get('/home', authenticate, (req,res) => {
+  //homepage
+  let token;
+  if((token = req.get('token')) !== ''){
+    console.log(`token got!: ${token}`)
+  }
+});
+app.get('/album', authenticate, (req,res) => {
+  //hämta bilder
+})
+app.post('/foto', authenticate, (req,res) => {
+  //posta bilder
+})
 
 
 
