@@ -1,16 +1,26 @@
 
+const { User } = require('.././user/user.js');
 
-const _DB_ = require('.././user/userdb.js');
+  //syftet med jwt är att validera den i servern och inte göra en DB-request.
+  const authenticate = function(req,res,next) {
+    console.log(req.header('auth'));
+    var token = req.header('auth');
 
-  const authenticate = (req,res,next) => {
-    var token = req.header('x-auth');
+    User.verify(token).then((resp) => {
+      console.log(`Verifier promise response ${resp}`);
+        if(!resp){
+          res.status(401).end();
+          //401 unat
+        }
 
-    _DB_.auth(token).then((resp) => {
-      if(resp.auth == true){
-        next();
-      }else{
-        res.status(403).send('Unauthorized personell');
-      }
+        req._USER_ = resp.user;
+
+        if(resp.user){
+          next();
+          console.log('inside');
+        }else{
+          res.status(403).send('Unauthorized');
+        }
 
     }).catch((e) => {
       console.log(e);
@@ -19,4 +29,4 @@ const _DB_ = require('.././user/userdb.js');
 
   }
 
-module.exports { authenticate }
+module.exports = { authenticate }

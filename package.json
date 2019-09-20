@@ -4,7 +4,7 @@
   "description": "create account with token",
   "main": "index.js",
   "scripts": {
-    "blaster": "node ./server/index.js"
+    "blast": "node ./server/index.js"
   },
   "author": "RM",
   "license": "MIT",
@@ -13,6 +13,7 @@
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "express": "^4.17.1",
-    "jsonwebtoken": "^8.5.1"
+    "jsonwebtoken": "^8.5.1",
+    "multer": "^1.4.2"
   }
 }

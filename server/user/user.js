@@ -6,6 +6,30 @@ const jwt = require('jsonwebtoken');
 const User = {
 	privkey: 'auth', //this should be a .pem-crypt-file
 
+	getUserTextPayload(req){
+		return new Promise((resolve, reject, err) => {
+			var user;
+			var pw;
+			var payload = req.body;
+
+			if (payload) {
+				var user = payload.username;
+				var text = payload.text;
+
+				resolve({
+					user: user,
+					text: text
+				});
+
+			} else {
+				reject(false);
+			}
+		}).catch((e) => {
+			console.log(`An error was caught! ${e}`);
+			return e;
+		});
+	},
+
 	getUserPayload(req) {
 		return new Promise((resolve, reject, err) => {
 			var user;
@@ -98,15 +122,23 @@ const User = {
 
 	verify(token) {
 		//return decoded user-token ((username)) or an error;
-		return jwt.verify(token, 'auth', function(err, decoded) {
-			if (err) {
-				throw new Error();
-			}
-			console.log(decoded.user) // bar
-			return decoded
+		console.log('Verifying token...');
+		return new Promise((resolve, reject, error) => {
+
+				return jwt.verify(token, 'auth', function(err, resp) {
+					console.log(err);
+					console.log(resp)
+					if (err) {
+						reject(err);
+					}
+					resolve(resp);
+				}).catch((e) => {
+					console.log(e);
+				});
+
 		}).catch((e) => {
-			console.log(e);
-		});
+				console.error('Error inside token veryfier');
+		})
 	}
 
 }
